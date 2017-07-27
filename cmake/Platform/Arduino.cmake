@@ -377,6 +377,9 @@ function(GENERATE_ARDUINO_LIBRARY INPUT_NAME)
     set(ALL_LIBS)
     set(ALL_SRCS ${INPUT_SRCS} ${INPUT_HDRS})
 
+    message("----------------------Arduino.cmake:GENERATE_ARDUINO_LIBRARY")
+    message(${INPUT_HDRS})
+
     if(NOT INPUT_MANUAL)
       setup_arduino_core(CORE_LIB ${INPUT_BOARD})
     endif()
@@ -497,7 +500,10 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
 
     required_variables(VARS ALL_SRCS MSG "must define SRCS or SKETCH for target ${INPUT_NAME}")
 
-    find_arduino_libraries(TARGET_LIBS "${ALL_SRCS}" "${INPUT_ARDLIBS}")
+
+    message ("input libs ${INPUT_LIBS}")
+    set (POTENTIAL_LIBS ${ALL_SRCS} ${INPUT_LIBS})
+    find_arduino_libraries(TARGET_LIBS "${ALL_SRCS}" "${INPUT_ARDLIBS}") 
     foreach(LIB_DEP ${TARGET_LIBS})
         arduino_debug_msg("Arduino Library: ${LIB_DEP}")
         set(LIB_DEP_INCLUDES "${LIB_DEP_INCLUDES} -I\"${LIB_DEP}\" -I\"${LIB_DEP}/src\"")
@@ -512,6 +518,16 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     endif()
 
     list(APPEND ALL_LIBS ${CORE_LIB} ${INPUT_LIBS})
+
+    #message ("------------------------generating firmware")
+    #message ("all sources ${ALL_SRCS}")
+    #message ("input ardlibs ${INPUT_ARDLIBS}")
+    #message ("input libs ${INPUT_LIBS}")
+    #message ("core lib ${CORE_LIB}")
+    #message ("target libs ${TARGET_LIBS}")
+    #message ("lib dep ${LIB_DEP}")
+    #message ("lib dep includes ${LIB_DEP_INCLUDES}")
+    #message ("all libs ${ALL_LIBS}")
 
     setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD} "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" "${INPUT_MANUAL}")
 
@@ -618,6 +634,10 @@ function(GENERATE_ARDUINO_EXAMPLE INPUT_NAME)
     endif()
 
     find_arduino_libraries(TARGET_LIBS "${ALL_SRCS}" "")
+    
+    #message("all libs ${ALL_LIBS}")
+    #message("target libs ${TARGET_LIBS}")
+    
     set(LIB_DEP_INCLUDES)
     foreach(LIB_DEP ${TARGET_LIBS})
         set(LIB_DEP_INCLUDES "${LIB_DEP_INCLUDES} -I\"${LIB_DEP}\"")
@@ -626,6 +646,17 @@ function(GENERATE_ARDUINO_EXAMPLE INPUT_NAME)
     setup_arduino_libraries(ALL_LIBS ${INPUT_BOARD} "${ALL_SRCS}" "" "${LIB_DEP_INCLUDES}" "")
 
     list(APPEND ALL_LIBS ${CORE_LIB} ${INPUT_LIBS})
+
+    message ("------------------------generating example")
+    #message ("all sources ${ALL_SRCS}")
+    #message ("input ardlibs ${INPUT_ARDLIBS}")
+    #message ("target libs ${TARGET_LIBS}")
+    #message ("lib dep ${LIB_DEP}")
+    #message ("input lib ${INPUT_LIBRARY}")
+    #message ("input name ${INPUT_NAME}")
+    #message ("input example ${INPUT_EXAMPLE}")
+    message ("lib dep includes ${LIB_DEP_INCLUDES}")
+    message ("all libs ${ALL_LIBS}")
 
     setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD}  "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" FALSE)
 
@@ -929,14 +960,13 @@ endfunction()
 function(find_arduino_libraries VAR_NAME SRCS ARDLIBS)
     set(ARDUINO_LIBS )
     foreach(SRC ${SRCS})
-
         # Skipping generated files. They are, probably, not exist yet.
         # TODO: Maybe it's possible to skip only really nonexisting files,
         # but then it wiil be less deterministic.
         get_source_file_property(_srcfile_generated ${SRC} GENERATED)
         # Workaround for sketches, which are marked as generated
         get_source_file_property(_sketch_generated ${SRC} GENERATED_SKETCH)
-
+        #message ("----- looking for libraries")
         if(NOT ${_srcfile_generated} OR ${_sketch_generated})
             if(NOT (EXISTS ${SRC} OR
                     EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${SRC} OR
@@ -950,7 +980,9 @@ function(find_arduino_libraries VAR_NAME SRCS ARDLIBS)
             endforeach()
 
             foreach(SRC_LINE ${SRC_CONTENTS})
-                if("#${SRC_LINE}#" MATCHES "^#[ \t]*#[ \t]*include[ \t]*[<\"]([^>\"]*)[>\"]#")
+              if("#${SRC_LINE}#" MATCHES "^#[ \t]*#[ \t]*include[
+                \t]*[<\"]([^>\"]*)[>\"]#*")
+                #  message ("src line ${SRC_LINE} -- match ${CMAKE_MATCH_1}")
                     get_filename_component(INCLUDE_NAME ${CMAKE_MATCH_1} NAME_WE)
                     get_property(LIBRARY_SEARCH_PATH
                                  DIRECTORY     # Property Scope
@@ -976,6 +1008,7 @@ function(find_arduino_libraries VAR_NAME SRCS ARDLIBS)
     if(ARDUINO_LIBS)
         list(REMOVE_DUPLICATES ARDUINO_LIBS)
     endif()
+    message ("------------------found libraries ${ARDUINO_LIBS}")
     set(${VAR_NAME} ${ARDUINO_LIBS} PARENT_SCOPE)
 endfunction()
 
@@ -1011,10 +1044,10 @@ set(Robot_Control_RECURSE True)
 function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLAGS)
     set(LIB_TARGETS)
     set(LIB_INCLUDES)
-
     get_filename_component(LIB_NAME ${LIB_PATH} NAME)
     set(TARGET_LIB_NAME ${BOARD_ID}_${LIB_NAME})
-    if(NOT TARGET ${TARGET_LIB_NAME})
+    message ("-**- setting up library ${LIB_NAME} ${TARGET_LIB_NAME}")
+    if(NOT TARGET ${TARGET_LIB_NAME}) #Only enter if library does not exist yet
         string(REGEX REPLACE ".*/" "" LIB_SHORT_NAME ${LIB_NAME})
 
         # Detect if recursion is needed
@@ -1022,6 +1055,7 @@ function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLA
             set(${LIB_SHORT_NAME}_RECURSE False)
         endif()
 
+        #message ("lib path ${LIB_PATH}")
         find_sources(LIB_SRCS ${LIB_PATH} ${${LIB_SHORT_NAME}_RECURSE})
         if(LIB_SRCS)
             message(STATUS "Generating ${TARGET_LIB_NAME} for library ${LIB_NAME}")
@@ -1033,9 +1067,10 @@ function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLA
             find_arduino_libraries(LIB_DEPS "${LIB_SRCS}" "")
 
             foreach(LIB_DEP ${LIB_DEPS})
-	        if(NOT DEP_LIB_SRCS STREQUAL TARGET_LIB_NAME AND DEP_LIB_SRCS)
+              message ("--looking at ${LIB_DEP} for ${LIB_NAME}")
+	            if(NOT DEP_LIB_SRCS STREQUAL TARGET_LIB_NAME AND DEP_LIB_SRCS)
                   message(STATUS "Found library ${LIB_NAME} needs ${DEP_LIB_SRCS}")
-		endif()
+		          endif()
 
                 setup_arduino_library(DEP_LIB_SRCS ${BOARD_ID} ${LIB_DEP} "${COMPILE_FLAGS}" "${LINK_FLAGS}")
                 # Do not link to this library. DEP_LIB_SRCS will always be only one entry
@@ -1043,17 +1078,28 @@ function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLA
                 if(NOT DEP_LIB_SRCS STREQUAL TARGET_LIB_NAME)
                     list(APPEND LIB_TARGETS ${DEP_LIB_SRCS})
                     list(APPEND LIB_INCLUDES ${DEP_LIB_SRCS_INCLUDES})
+                    target_link_libraries(${TARGET_LIB_NAME} ${DEP_LIB_SRCS})
                 endif()
+                # message ("lib targets: ${LIB_TARGETS}, lib includes: ${LIB_INCLUDES}")
+                # message ("lib targets: ${DEP_LIB_SRCS}, lib includes:
+                #${DEP_LIB_SRCS_INCLUDES}")
             endforeach()
 
             if (LIB_INCLUDES)
                 string(REPLACE ";" " " LIB_INCLUDES "${LIB_INCLUDES}")
             endif()
 
+            #message ("----lib path: ${LIB_PATH}")
+            message ("----: ${LIB_INCLUDES}")
+            ## -I\"${LIB_INCLUDES}\"
             set_target_properties(${TARGET_LIB_NAME} PROPERTIES
-                COMPILE_FLAGS "${ARDUINO_COMPILE_FLAGS} ${LIB_INCLUDES} -I\"${LIB_PATH}\" -I\"${LIB_PATH}/src\" -I\"${LIB_PATH}/utility\" ${COMPILE_FLAGS}"
+              COMPILE_FLAGS "${ARDUINO_COMPILE_FLAGS} ${LIB_INCLUDES} -I\"${LIB_PATH}\" -I\"${LIB_PATH}/src\" -I\"${LIB_PATH}/utility\" ${COMPILE_FLAGS}"
                 LINK_FLAGS "${ARDUINO_LINK_FLAGS} ${LINK_FLAGS}")
             list(APPEND LIB_INCLUDES "-I\"${LIB_PATH}\" -I\"${LIB_PATH}/src\" -I\"${LIB_PATH}/utility\"")
+
+            get_target_property (PROP ${TARGET_LIB_NAME} LINK_FLAGS)
+            #message (""${PROP})
+            #message ("lib includes after appending ${LIB_INCLUDES}")
 
             target_link_libraries(${TARGET_LIB_NAME} ${BOARD_ID}_CORE)
             list(APPEND LIB_TARGETS ${TARGET_LIB_NAME})
@@ -1062,12 +1108,23 @@ function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLA
     else()
         # Target already exists, skiping creating
         list(APPEND LIB_TARGETS ${TARGET_LIB_NAME})
+        list(APPEND LIB_INCLUDES "-I\"${LIB_PATH}\" -I\"${LIB_PATH}/src\" -I\"${LIB_PATH}/utility\"") #test
+        #if (LIB_INCLUDES)
+        #   string(REPLACE ";" " " LIB_INCLUDES "${LIB_INCLUDES}")
+        #endif()
+        message ("library already exists ${LIB_NAME}")
+
     endif()
     if(LIB_TARGETS)
         list(REMOVE_DUPLICATES LIB_TARGETS)
     endif()
-    set(${VAR_NAME}          ${LIB_TARGETS}  PARENT_SCOPE)
+    if (LIB_INCLUDES) #added removal of semicolon here
+       string(REPLACE ";" " " LIB_INCLUDES "${LIB_INCLUDES}")
+    endif()
+   set(${VAR_NAME}          ${LIB_TARGETS}  PARENT_SCOPE)
     set(${VAR_NAME}_INCLUDES ${LIB_INCLUDES} PARENT_SCOPE)
+    message ("lib targets ${LIB_TARGETS}")
+    message ("lib target includes ${LIB_INCLUDES}")
 endfunction()
 
 #=============================================================================#
@@ -1089,12 +1146,17 @@ function(setup_arduino_libraries VAR_NAME BOARD_ID SRCS ARDLIBS COMPILE_FLAGS LI
     set(LIB_INCLUDES)
 
     find_arduino_libraries(TARGET_LIBS "${SRCS}" ARDLIBS)
+    message ("setting up arduino libraries ${TARGET_LIBS}")
     foreach(TARGET_LIB ${TARGET_LIBS})
         # Create static library instead of returning sources
+        message ("setting up arduino library ${TARGET_LIB}")
         setup_arduino_library(LIB_DEPS ${BOARD_ID} ${TARGET_LIB} "${COMPILE_FLAGS}" "${LINK_FLAGS}")
         list(APPEND LIB_TARGETS ${LIB_DEPS})
         list(APPEND LIB_INCLUDES ${LIB_DEPS_INCLUDES})
     endforeach()
+
+    message ("---- libraries set up. Includes: ${LIB_INCLUDES}")
+    message ("---- targets ${LIB_TARGETS}")
 
     set(${VAR_NAME}          ${LIB_TARGETS}  PARENT_SCOPE)
     set(${VAR_NAME}_INCLUDES ${LIB_INCLUDES} PARENT_SCOPE)
@@ -1734,7 +1796,7 @@ endfunction()
 # setup_arduino_example(TARGET_NAME LIBRARY_NAME EXAMPLE_NAME OUTPUT_VAR)
 #
 #      TARGET_NAME  - Target name
-#      LIBRARY_NAME - Library name
+#      LIBRARY_NAME - Library name--> lib containing example
 #      EXAMPLE_NAME - Example name
 #      OUTPUT_VAR   - Variable name to save sketch path.
 #
@@ -1749,7 +1811,8 @@ function(SETUP_ARDUINO_EXAMPLE TARGET_NAME LIBRARY_NAME EXAMPLE_NAME OUTPUT_VAR)
     foreach(LIB_SEARCH_PATH ${LIBRARY_SEARCH_PATH} ${ARDUINO_LIBRARIES_PATH} ${${ARDUINO_PLATFORM}_LIBRARIES_PATH} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/libraries)
         message(STATUS "Search ${LIBRARY_NAME} example directory in ${LIB_SEARCH_PATH}")
         if(EXISTS "${LIB_SEARCH_PATH}/${LIBRARY_NAME}/examples/${EXAMPLE_NAME}")
-            set(EXAMPLE_SKETCH_PATH "${LIB_SEARCH_PATH}/${LIBRARY_NAME}/examples/${EXAMPLE_NAME}")
+          message(STATUS "Found ${EXAMPLE_NAME} in ${LIB_SEARCH_PATH}/${LIBRARY_NAME}/examples")
+          set(EXAMPLE_SKETCH_PATH "${LIB_SEARCH_PATH}/${LIBRARY_NAME}/examples/${EXAMPLE_NAME}")
             break()
         endif()
     endforeach()
@@ -1777,7 +1840,9 @@ function(SETUP_ARDUINO_SKETCH TARGET_NAME SKETCH_PATH OUTPUT_VAR)
     get_filename_component(SKETCH_NAME "${SKETCH_PATH}" NAME)
     get_filename_component(SKETCH_PATH "${SKETCH_PATH}" ABSOLUTE)
 
-    if(EXISTS "${SKETCH_PATH}")
+    message(STATUS "setting up sketch for ${SKETCH_PATH}")
+
+      if(EXISTS "${SKETCH_PATH}")
         set(SKETCH_CPP  ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}_${SKETCH_NAME}.cpp)
 
         if (IS_DIRECTORY "${SKETCH_PATH}")
