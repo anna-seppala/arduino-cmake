@@ -84,5 +84,6 @@ endif()
 
 set(ARDUINO_CPUMENU)
 if(ARDUINO_CPU)
+    message("ARDUINO_CPU = ${ARDUINO_CPU}")
     set(ARDUINO_CPUMENU ".menu.cpu.${ARDUINO_CPU}")
 endif(ARDUINO_CPU)
