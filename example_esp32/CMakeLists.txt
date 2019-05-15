@@ -8,8 +8,6 @@ SET(CMAKE_RANLIB "${ARDUINO_SDK_PATH}/hardware/espressif/esp32/tools/xtensa-esp3
 
 include_directories(
   "${ARDUINO_SDK_PATH}/hardware/espressif/esp32/variants/esp32")
-include_directories(
-  "${ARDUINO_SDK_PATH}/hardware/espressif/esp32/tools/sdk/include/bt")
 
 get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 message("included dirs = ${inc_dirs}")
