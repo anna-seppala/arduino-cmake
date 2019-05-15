@@ -1,6 +1,12 @@
 # Set a variable for commands below
 set(PROJECT_NAME example_esp32)
 
+set(CMAKE_CXX_COMPILER
+  "/usr/share/arduino-1.8.7/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++")
+set(CMAKE_C_COMPILER
+  "/usr/share/arduino-1.8.7/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc")
+set(CMAKE_AR "/usr/share/arduino-1.8.7/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar")
+set( CMAKE_RANLIB "/usr/share/arduino-1.8.7/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib")
 # Define your project and language
 project(${PROJECT_NAME})
 
