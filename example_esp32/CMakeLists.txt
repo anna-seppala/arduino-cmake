@@ -33,5 +33,4 @@ set(${${PROJECT_NAME}_BOARD}.upload.speed 921600)#same as serial baud rate?
 set(${${PROJECT_NAME}_BOARD}.build.flash_freq 80m)
 
 # Command to generate code arduino firmware (.hex file)
-generate_arduino_firmware(${PROJECT_NAME}
-  LIBS ${CORE_LIB})
+generate_arduino_firmware(${PROJECT_NAME})
