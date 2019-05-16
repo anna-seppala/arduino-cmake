@@ -1345,7 +1345,7 @@ function(setup_arduino_target TARGET_NAME BOARD_ID ALL_SRCS ALL_LIBS COMPILE_FLA
 
     # Create ${TARGET_NAME}-size target
     add_custom_target(${TARGET_NAME}-size
-                      COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/Platform/size_script.py
+                      COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_MODULE_PATH}/Platform/size_script.py
                       "-c" "\"${ARDUINO_SIZE_CMD}\""
                       "-p" "\"${ARDUINO_SIZE_FLAGS}\""
                       "-r" "\"${REGEX_SIZE}\""
@@ -1356,7 +1356,7 @@ function(setup_arduino_target TARGET_NAME BOARD_ID ALL_SRCS ALL_LIBS COMPILE_FLA
                       "-sf" "\"${MAX_SIZE_FLASH}\"")
 
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                       COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/Platform/size_script.py
+                       COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_MODULE_PATH}/Platform/size_script.py
                        "-c" "${ARDUINO_SIZE_CMD}"
                        "-p" "${ARDUINO_SIZE_FLAGS}"
                        "-r" "${REGEX_SIZE}"
