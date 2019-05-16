@@ -893,8 +893,9 @@ endfunction()
 function(get_recipe_flags COMPILE_CMD_VAR COMPILE_FLAGS_VAR BOARD_ID RECIPE_TYPE)
 
     set(PLATFORM ${${BOARD_ID}.PLATFORM})
-
+    message("get recipe flags -- recipe type: ${RECIPE_TYPE}")
     set(RECIPE_VAR_NAME "${PLATFORM}.${RECIPE_TYPE}.pattern")
+    message("get recipe flags -- recipe var name: ${${RECIPE_TYPE}.pattern}")
 
     if(NOT DEFINED ${RECIPE_VAR_NAME})
         MESSAGE(FATAL_ERROR "Value for ${RECIPE_VAR_NAME} not defined")
@@ -931,9 +932,11 @@ function(get_recipe_flags COMPILE_CMD_VAR COMPILE_FLAGS_VAR BOARD_ID RECIPE_TYPE
 
         string(STRIP "${RECPIE_FLAGS}" RECPIE_FLAGS)
 
+        message("get recipe flags -- recipe command: ${RECPIE_CMD}")
         get_variable_value_filled(RECIPE_CMD_FULL "${RECPIE_CMD}" ${BOARD_ID} ${RECIPE_VAR_NAME})
         SET(${COMPILE_CMD_VAR} ${RECIPE_CMD_FULL} PARENT_SCOPE)
-
+        message("get recipe flags -- recipe command full: ${RECIPE_CMD_FULL}")
+        
         get_variable_value_filled(RECIPE_FLAGS_FULL "${RECPIE_FLAGS}" ${BOARD_ID} ${RECIPE_VAR_NAME})
         SET(${COMPILE_FLAGS_VAR} ${RECIPE_FLAGS_FULL} PARENT_SCOPE)
 
@@ -1394,6 +1397,7 @@ function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT
     set(TARGET_PATH ${EXECUTABLE_OUTPUT_PATH}/${TARGET_NAME})
 
     get_recipe_flags(ARDUINO_UPLOAD_CMD ARDUINO_UPLOAD_FLAGS ${BOARD_ID} "tools.${PROGRAMMER_ID}.upload")
+    message("arduino bootloader upload -- upload command: ${ARDUINO_UPLOAD_CMD}")
 
     string(REPLACE "{build.path}/{build.project_name}" "${TARGET_NAME}" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
     string(REPLACE "{serial.port}" "${PORT}" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
@@ -1433,9 +1437,10 @@ endfunction()
 function(setup_arduino_upload BOARD_ID TARGET_NAME PORT PROGRAMMER_ID AVRDUDE_FLAGS)
 
     setup_arduino_bootloader_upload(${TARGET_NAME} ${BOARD_ID} ${PROGRAMMER_ID} ${PORT})
-
+    message("in arduino upload -- programmer: ${PROGRAMMER_ID}")
     # Add programmer support if defined
     if(PROGRAMMER_ID AND ${BOARD_ID}.upload.protocol)
+        message("in arduino upload -- upload protocol:${${BOARD_ID}.upload.protocol}")
         setup_arduino_programmer_burn(${TARGET_NAME} ${BOARD_ID} ${PROGRAMMER_ID} ${PORT} "${AVRDUDE_FLAGS}")
         setup_arduino_bootloader_burn(${TARGET_NAME} ${BOARD_ID} ${PROGRAMMER_ID} ${PORT} "${AVRDUDE_FLAGS}")
     endif()
