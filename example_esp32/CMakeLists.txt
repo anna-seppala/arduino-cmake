@@ -24,10 +24,10 @@ set(${PROJECT_NAME}_BOARD esp32)#featheresp32)
 set(${PROJECT_NAME}_SRCS example_esp32.cpp)
 
 # Define the port for uploading code to the Arduino
-set(${PROJECT_NAME}_PORT /dev/ttyUSB2)
+set(${PROJECT_NAME}_PORT /dev/ttyUSB0)
 
 # Select a specific upload speed for the board
-set(${${PROJECT_NAME}_BOARD}.upload.speed 921600)
+set(${${PROJECT_NAME}_BOARD}.upload.speed 921600)#same as serial baud rate?
 
 # Select a specific flash frequence for the board
 set(${${PROJECT_NAME}_BOARD}.build.flash_freq 80m)

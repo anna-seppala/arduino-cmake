@@ -6,6 +6,7 @@ SET(CMAKE_CXX_COMPILER_WORKS 1)
 SET(CMAKE_AR "${ARDUINO_SDK_PATH}/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar")
 SET(CMAKE_RANLIB "${ARDUINO_SDK_PATH}/hardware/espressif/esp32/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib")
 
+include_directories("${ARDUINO_SDK_PATH}/hardware/espressif/esp32/variants/esp32")
 
 # Set a variable for commands below
 set(PROJECT_NAME example_ap)
@@ -13,7 +14,7 @@ set(PROJECT_NAME example_ap)
 # Define your project and language
 project(${PROJECT_NAME})
 
-set(${PROJECT_NAME}_BOARD featheresp32)
+set(${PROJECT_NAME}_BOARD esp32)
 
 # Define the source code
 set(${PROJECT_NAME}_SRCS wifi_ap.cpp aes.c)
