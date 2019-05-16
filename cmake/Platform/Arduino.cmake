@@ -377,15 +377,12 @@ function(GENERATE_ARDUINO_LIBRARY INPUT_NAME)
     set(ALL_LIBS)
     set(ALL_SRCS ${INPUT_SRCS} ${INPUT_HDRS})
 
-    message(STATUS "all libs: ${ALL_LIBS}")
-    message("all srcs: ${ALL_SRCS}")
     if(NOT INPUT_MANUAL)
       setup_arduino_core(CORE_LIB ${INPUT_BOARD})
       set(BOARD_CORE ${${BOARD_ID}.build.core})
       set(BOARD_CORE_PATH ${${BOARD_CORE}.path})
       include_directories( ${BOARD_CORE_PATH})
     endif()
-    message("board core path: ${BOARD_CORE_PATH}")
 
     find_arduino_libraries(TARGET_LIBS "${ALL_SRCS}" "")
     set(LIB_DEP_INCLUDES)
@@ -393,7 +390,6 @@ function(GENERATE_ARDUINO_LIBRARY INPUT_NAME)
         set(LIB_DEP_INCLUDES "${LIB_DEP_INCLUDES} -I\"${LIB_DEP}\"")
     endforeach()
 
-    message("lib dep includes: ${LIB_DEP_INCLUDES}")
     if(NOT ${INPUT_NO_AUTOLIBS})
         setup_arduino_libraries(ALL_LIBS  ${INPUT_BOARD} "${ALL_SRCS}" "" "${LIB_DEP_INCLUDES}" "")
     endif()
@@ -491,17 +487,14 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
         set(ARDUINO_CPUMENU ".menu.cpu.${INPUT_CPU}")
     endif(INPUT_CPU)
 
+    message("input board: ${INPUT_BOARD}")
     set(PLATFORM ${${INPUT_BOARD}.PLATFORM})
-
+    message("platform: ${PLATFORM}")
 
     set(ALL_LIBS)
     set(ALL_SRCS ${INPUT_SRCS} ${INPUT_HDRS})
     set(LIB_DEP_INCLUDES)
 
-    message("---------- generate ard firmware -----------")
-    message("all libs: ${ALL_LIBS}")
-    message(STATUS "all srcs: ${ALL_SRCS}")
-    message(STATUS "all lib dep includes: ${LIB_DEP_INCLUDES}")
     # set predefined variable values
 
     set(${INPUT_NAME}.build.path ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
@@ -512,12 +505,13 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
 
 
     if(NOT INPUT_MANUAL)
-      message(STATUS "core lib: ${CORE_LIB}")
       setup_arduino_core(CORE_LIB ${INPUT_BOARD})
 
-      message("---------- back to generate ard firmware -----------")
       set(BOARD_CORE ${${INPUT_BOARD}.build.core})
       set(BOARD_CORE_PATH ${${BOARD_CORE}.path})
+      message("board core: ${BOARD_CORE}")
+      message("board core path : ${BOARD_CORE_PATH}")
+
       include_directories( ${BOARD_CORE_PATH})
     endif()
 
@@ -543,7 +537,6 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
         arduino_debug_msg("Arduino Library: ${LIB_DEP}")
         set(LIB_DEP_INCLUDES "${LIB_DEP_INCLUDES} -I\"${LIB_DEP}\" -I\"${LIB_DEP}/src\"")
     endforeach()
-    message(STATUS "all lib dep includes: ${LIB_DEP_INCLUDES}")
 
     if(NOT INPUT_NO_AUTOLIBS)
         setup_arduino_libraries(ALL_LIBS  ${INPUT_BOARD} "${ALL_SRCS}" "${INPUT_ARDLIBS}" "${LIB_DEP_INCLUDES}" "" "${INPUT_ARDLIBS_PATH}")
@@ -554,9 +547,6 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     endif()
 
     list(APPEND ALL_LIBS ${CORE_LIB} ${INPUT_LIBS})
-    message(STATUS "all srcs: ${ALL_SRCS}")
-    message(STATUS "all libs: ${ALL_LIBS}")
-    message(STATUS "lib dep includes: ${LIB_DEP_INCLUDES}")
     setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD} "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" "${INPUT_MANUAL}")
 
     if(INPUT_PORT)
@@ -566,7 +556,6 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     if(INPUT_SERIAL)
         setup_serial_target(${INPUT_NAME} "${INPUT_SERIAL}" "${INPUT_PORT}")
     endif()
-    message("---------- finish  generate ard firmware -----------")
 
 endfunction()
 
@@ -976,11 +965,6 @@ function(setup_arduino_core VAR_NAME BOARD_ID)
             list(REMOVE_ITEM CORE_SRCS "${BOARD_CORE_PATH}/main.cxx")
             add_library(${CORE_LIB_NAME} ${CORE_SRCS})
 
-            message("------------ generate arduino core ---------------")
-            message(STATUS "core srcs: ${CORE_SRCS}")
-            message(STATUS "board core path: ${BOARD_CORE_PATH}")
-            message(STATUS "core srcs: ${CORE_SRCS}")
-
             get_recipe_flags(ARDUINO_COMPILE_CMD ARDUINO_COMPILE_FLAGS ${BOARD_ID} "recipe.cpp.o")
 
             if(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "${ARDUINO_COMPILE_CMD}")
@@ -993,16 +977,11 @@ function(setup_arduino_core VAR_NAME BOARD_ID)
                 MESSAGE(WARNING "Your archiver needs to be manually set. You then also need to update the CMAKE_RANLIB to point to the correct one.\nCMAKE_AR=\"${ARDUINO_LINK_CMD}\"")
             endif()
 
-            message(STATUS "arduino compile flags: ${ARDUINO_COMPILE_FLAGS}")
-            message(STATUS "link flags: ${ARDUINO_LINK_FLAGS}")
-            message(STATUS "compile command:  ${ARDUINO_COMPILE_CMD}")
-            message(STATUS "link command:${ARDUINO_LINK_CMD}")
             set_target_properties(${CORE_LIB_NAME} PROPERTIES
                 COMPILE_FLAGS "${ARDUINO_COMPILE_FLAGS}"
                 LINK_FLAGS "${ARDUINO_LINK_FLAGS}")
         endif()
         set(${VAR_NAME} ${CORE_LIB_NAME} PARENT_SCOPE)
-        message ("-------- leaving generate ard core ----------")
     endif()
 endfunction()
 
