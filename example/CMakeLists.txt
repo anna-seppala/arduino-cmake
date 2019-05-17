@@ -11,16 +11,16 @@ set(PROJECT_NAME example)
 # Define your project and language
 project(${PROJECT_NAME})
 
-set(${PROJECT_NAME}_BOARD uno)
+set(${PROJECT_NAME}_BOARD mega)
 
 # Define the source code
 set(${PROJECT_NAME}_SRCS example.cpp)
 
 # Define the port for uploading code to the Arduino
-set(${PROJECT_NAME}_PORT ttyACM0)
+set(${PROJECT_NAME}_PORT /dev/ttyACM0)
 
 
-set(${PROJECT_NAME}_CPU atmega328p)
+set(${PROJECT_NAME}_CPU atmega2560)
 
 # Command to generate code arduino firmware (.hex file)
 generate_arduino_firmware(${PROJECT_NAME})

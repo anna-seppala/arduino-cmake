@@ -899,7 +899,7 @@ function(get_recipe_flags COMPILE_CMD_VAR COMPILE_FLAGS_VAR BOARD_ID RECIPE_TYPE
     if(NOT DEFINED ${RECIPE_VAR_NAME})
         MESSAGE(FATAL_ERROR "Value for ${RECIPE_VAR_NAME} not defined")
     endif()
-
+    message("get recipe flags -- recipe var name: ${${RECIPE_VAR_NAME}}")
     set(RECIPE_PATTERN ${${RECIPE_VAR_NAME}})
 
     # Split recipe into command part (first part in quotes or up to first space) and flags part
@@ -1389,12 +1389,35 @@ function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT
     set(UPLOAD_TARGET ${TARGET_NAME}-upload)
 
     if(NOT EXECUTABLE_OUTPUT_PATH)
+      message("no exec path found -- setting default")
         set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
     endif()
     set(TARGET_PATH ${EXECUTABLE_OUTPUT_PATH}/${TARGET_NAME})
-
+    message("setup arduino bootloader upload---- programmer id:${PROGRAMMER_ID}")
     get_recipe_flags(ARDUINO_UPLOAD_CMD ARDUINO_UPLOAD_FLAGS ${BOARD_ID} "tools.${PROGRAMMER_ID}.upload")
+    if(PROGRAMMER_ID STREQUAL "avrdude")
+      message("programmer is avrdude -- setting default avrdude path")
+      set(ARDUINO_UPLOAD_CMD ${ARDUINO_AVRDUDE_PROGRAM})
+      # get config path from flags and modify it to match default
+      # Split flag into config (first part in quotes or up to first space) & other flags part
+      if("${ARDUINO_UPLOAD_FLAGS}" MATCHES "^\"([^\"]+)\"(.*)\$|^([^ ]+) (.*)\$")
+        if(CMAKE_MATCH_1)
+          SET(PROGRAMMER_CONFIG ${CMAKE_MATCH_1})
+          SET(OTHER_FLAGS ${CMAKE_MATCH_2})
+        else()
+          SET(PROGRAMMER_CONFIG ${CMAKE_MATCH_3})
+          SET(OTHER_FLAGS ${CMAKE_MATCH_4})
+        endif()
+      endif()
+      #set(ARDUINO_UPLOAD_FLAGS "")
+      string(CONCAT ARDUINO_UPLOAD_FLAGS "-C" "${ARDUINO_AVRDUDE_CONFIG_PATH}")
+      list(APPEND ARDUINO_UPLOAD_FLAGS "${OTHER_FLAGS}")
+        message("config: ${PROGRAMMER_CONFIG} & other: ${OTHER_FLAGS}")
+        message("default config: ${ARDUINO_AVRDUDE_CONFIG_PATH}")
+        message("new flags: ${ARDUINO_UPLOAD_FLAGS}")
 
+    endif()
+    message("setup arduino bootloader upload---- arduino upload cmd:${ARDUINO_UPLOAD_CMD}")
     string(REPLACE "{build.path}/{build.project_name}" "${TARGET_NAME}" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
     string(REPLACE "{serial.port}" "${PORT}" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
 
