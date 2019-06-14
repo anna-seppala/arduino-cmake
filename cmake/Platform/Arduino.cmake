@@ -8,7 +8,9 @@
 #      [PORT  port]
 #      [SERIAL serial_cmd]
 #      [PROGRAMMER programmer_id]
-#      [AFLAGS flags]
+#      [A_COMPILE_FLAGS compile flags]
+#      [A_LINK_FLAGS link flags]
+#      [A_UPLOAD_FLAGS upload flags]
 #      [NO_AUTOLIBS]
 #      [MANUAL])
 #
@@ -18,19 +20,21 @@
 #
 # The arguments are as follows:
 #
-#      name           # The name of the firmware target         [REQUIRED]
-#      BOARD          # Board name (such as uno, mega2560, ...) [REQUIRED]
-#      SKETCH         # Arduino sketch [must have SRCS or SKETCH]
-#      SRCS           # Sources        [must have SRCS or SKETCH]
-#      HDRS           # Headers
-#      LIBS           # Libraries to link
-#      ARDLIBS        # Arduino libraries to link (Wire, Servo, SPI, etc)
-#      PORT           # Serial port (enables upload support)
-#      SERIAL         # Serial command for serial target
-#      PROGRAMMER     # Programmer id (enables programmer support)
-#      AFLAGS         # Avrdude flags for target
-#      NO_AUTOLIBS    # Disables Arduino library detection
-#      MANUAL         # (Advanced) Only use AVR Libc/Includes
+#      name               # The name of the firmware target         [REQUIRED]
+#      BOARD              # Board name (such as uno, mega2560, ...) [REQUIRED]
+#      SKETCH             # Arduino sketch [must have SRCS or SKETCH]
+#      SRCS               # Sources        [must have SRCS or SKETCH]
+#      HDRS               # Headers
+#      LIBS               # Libraries to link
+#      ARDLIBS            # Arduino libraries to link (Wire, Servo, SPI, etc)
+#      PORT               # Serial port (enables upload support)
+#      SERIAL             # Serial command for serial target
+#      PROGRAMMER         # Programmer id (enables programmer support)
+#      A_COMPILE_FLAGS    # compile flags
+#      A_LINK_FLAGS       # link flags
+#      A_UPLOAD_FLAGS     # uload flags
+#      NO_AUTOLIBS        # Disables Arduino library detection
+#      MANUAL             # (Advanced) Only use AVR Libc/Includes
 #
 # Here is a short example for a target named test:
 #
@@ -60,7 +64,9 @@
 #      [PORT  port]
 #      [SERIAL serial_cmd]
 #      [PROGRAMMER programmer_id]
-#      [AFLAGS flags])
+#      [A_COMPILE_FLAGS compile flags]
+#      [A_LINK_FLAGS link flags]
+#      [A_UPLOAD_FLAGS upload flags])
 #=============================================================================#
 #
 #   generaters firmware and libraries for AVR devices
@@ -68,16 +74,18 @@
 #
 # The arguments are as follows:
 #
-#      name           # The name of the firmware target         [REQUIRED]
-#      BOARD          # Board name (such as uno, mega2560, ...) [REQUIRED]
-#      SRCS           # Sources                                 [REQUIRED]
-#      HDRS           # Headers
-#      LIBS           # Libraries to link
-#      PORT           # Serial port (enables upload support)
-#      SERIAL         # Serial command for serial target
-#      PROGRAMMER     # Programmer id (enables programmer support)
-#      AFLAGS         # Avrdude flags for target
-#
+#      name               # The name of the firmware target         [REQUIRED]
+#      BOARD              # Board name (such as uno, mega2560, ...) [REQUIRED]
+#      SRCS               # Sources                                 [REQUIRED]
+#      HDRS               # Headers
+#      LIBS               # Libraries to link
+#      PORT               # Serial port (enables upload support)
+#      SERIAL             # Serial command for serial target
+#      PROGRAMMER         # Programmer id (enables programmer support)
+#      A_COMPILE_FLAGS    # compile flags
+#      A_LINK_FLAGS       # link flags
+#      A_UPLOAD_FLAGS     # uload flags
+
 # Here is a short example for a target named test:
 #
 #       generate_avr_firmware(
@@ -182,17 +190,21 @@
 #                          [PORT port]
 #                          [SERIAL serial command]
 #                          [PORGRAMMER programmer_id]
-#                          [AFLAGS avrdude_flags])
+#                          [A_COMPILE_FLAGS compile flags]
+#                          [A_LINK_FLAGS link flags]
+#                          [A_UPLOAD_FLAGS upload flags]))
 #=============================================================================#
 #
-#        name         - The name of the library example        [REQUIRED]
-#        LIBRARY      - Library name                           [REQUIRED]
-#        EXAMPLE      - Example name                           [REQUIRED]
-#        BOARD        - Board ID
-#        PORT         - Serial port [optional]
-#        SERIAL       - Serial command [optional]
-#        PROGRAMMER   - Programmer id (enables programmer support)
-#        AFLAGS       - Avrdude flags for target
+#        name               - The name of the library example        [REQUIRED]
+#        LIBRARY            - Library name                           [REQUIRED]
+#        EXAMPLE            - Example name                           [REQUIRED]
+#        BOARD              - Board ID
+#        PORT               - Serial port [optional]
+#        SERIAL             - Serial command [optional]
+#        PROGRAMMER         - Programmer id (enables programmer support)
+#        A_COMPILE_FLAGS    - compile flags
+#        A_LINK_FLAGS       - link flags
+#        A_UPLOAD_FLAGS     - uload flags
 #
 # Creates a example from the specified library.
 #
@@ -457,10 +469,10 @@ endfunction()
 function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     message(STATUS "Generating ${INPUT_NAME}")
     parse_generator_arguments(${INPUT_NAME} INPUT
-                              "NO_AUTOLIBS;MANUAL"                  # Options
-                              "BOARD;PORT;SKETCH;PROGRAMMER;CPU"        # One Value Keywords
-                              "SERIAL;SRCS;HDRS;LIBS;ARDLIBS;ARDLIBS_PATH;AFLAGS"  # Multi Value Keywords
-                              ${ARGN})
+        "NO_AUTOLIBS;MANUAL"                  # Options
+        "BOARD;PORT;SKETCH;PROGRAMMER;CPU"        # One Value Keywords # Multi Value Keywords:
+        "SERIAL;SRCS;HDRS;LIBS;ARDLIBS;ARDLIBS_PATH;A_COMPILE_FLAGS;A_LINK_FLAGS;A_UPLOAD_FLAGS"  
+        ${ARGN})
 
     if(NOT INPUT_BOARD)
         set(INPUT_BOARD ${ARDUINO_DEFAULT_BOARD})
@@ -546,10 +558,13 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     endif()
 
     list(APPEND ALL_LIBS ${CORE_LIB} ${INPUT_LIBS})
-    setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD} "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" "${INPUT_MANUAL}")
+    setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD} "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" "${INPUT_MANUAL}" "${INPUT_A_COMPILE_FLAGS}" "${INPUT_A_LINK_FLAGS}")
 
+    message("---gen arduino firmware flags: compile: ${INPUT_A_COMPILE_FLAGS},
+    link: ${INPUT_A_LINK_FLAGS}, upload: ${INPUT_A_UPLOAD_FLAGS}")
     if(INPUT_PORT)
-        setup_arduino_upload(${INPUT_BOARD} ${INPUT_NAME} ${INPUT_PORT} "${INPUT_PROGRAMMER}" "${INPUT_AFLAGS}")
+        setup_arduino_upload(${INPUT_BOARD} ${INPUT_NAME} ${INPUT_PORT}
+          "${INPUT_PROGRAMMER}""${INPUT_A_UPLOAD_FLAGS}")
     endif()
 
     if(INPUT_SERIAL)
@@ -567,8 +582,8 @@ function(GENERATE_AVR_FIRMWARE INPUT_NAME)
     message(STATUS "Generating ${INPUT_NAME}")
     parse_generator_arguments(${INPUT_NAME} INPUT
                               "NO_AUTOLIBS;MANUAL"            # Options
-                              "BOARD;PORT;PROGRAMMER"  # One Value Keywords
-                              "SERIAL;SRCS;HDRS;LIBS;AFLAGS"  # Multi Value Keywords
+                              "BOARD;PORT;PROGRAMMER"  # One Value Keywords  # Multi Value Keywords
+                              "SERIAL;SRCS;HDRS;LIBS;A_COMPILE_FLAGS;A_LINK_FLAGS;A_UPLOAD_FLAGS"
                               ${ARGN})
 
     if(NOT INPUT_BOARD)
@@ -592,10 +607,15 @@ function(GENERATE_AVR_FIRMWARE INPUT_NAME)
     if(INPUT_LIBS)
         list(INSERT INPUT_LIBS 0 "LIBS")
     endif()
-    if(INPUT_AFLAGS)
-        list(INSERT INPUT_AFLAGS 0 "AFLAGS")
+    if(INPUT_A_COMPILE_FLAGS)
+      list(INSERT INPUT_A_COMPILE_FLAGS 0 "A_COMPILE_FLAGS")
     endif()
-
+    if(INPUT_A_LINK_FLAGS)
+      list(INSERT INPUT_A_LINK_FLAGS 0 "A_LINK_FLAGS")
+    endif()
+    if(INPUT_A_UPLOAD_FLAGS)
+      list(INSERT INPUT_A_UPLOAD_FLAGS 0 "A_UPLOAD_FLAGS")
+    endif()
     generate_arduino_firmware( ${INPUT_NAME}
         NO_AUTOLIBS
         MANUAL
@@ -606,7 +626,9 @@ function(GENERATE_AVR_FIRMWARE INPUT_NAME)
         SRCS ${INPUT_SRCS}
         ${INPUT_HDRS}
         ${INPUT_LIBS}
-        ${INPUT_AFLAGS} )
+        ${INPUT_A_COMPILE_FLAGS}
+        ${INPUT_A_LINK_FLAGS}
+        ${INPUT_A_UPLOAD_FLAGS})
 
 endfunction()
 
@@ -618,7 +640,7 @@ function(GENERATE_ARDUINO_EXAMPLE INPUT_NAME)
     parse_generator_arguments(${INPUT_NAME} INPUT
                               ""                                       # Options
                               "LIBRARY;EXAMPLE;BOARD;PORT;PROGRAMMER"  # One Value Keywords
-                              "SERIAL;AFLAGS"                          # Multi Value Keywords
+                              "SERIAL;A_COMPILE_FLAGS;A_LINK_FLAGS;A_UPLOAD_FLAGS"#mult-val-keywords
                               ${ARGN})
 
 
@@ -660,10 +682,11 @@ function(GENERATE_ARDUINO_EXAMPLE INPUT_NAME)
 
     list(APPEND ALL_LIBS ${CORE_LIB} ${INPUT_LIBS})
 
-    setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD}  "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" FALSE)
+    setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD}  "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" FALSE "${INPUT_A_COMPILE_FLAGS}" "${INPUT_A_LINK_FLAGS}")
 
     if(INPUT_PORT)
-        setup_arduino_upload(${INPUT_BOARD} ${INPUT_NAME} ${INPUT_PORT} "${INPUT_PROGRAMMER}" "${INPUT_AFLAGS}")
+        setup_arduino_upload(${INPUT_BOARD} ${INPUT_NAME} ${INPUT_PORT}
+          "${INPUT_PROGRAMMER}" "${INPUT_A_UPLOAD_FLAGS}")
     endif()
 
     if(INPUT_SERIAL)
@@ -1252,7 +1275,8 @@ endfunction()
 # Creates an Arduino firmware target.
 #
 #=============================================================================#
-function(setup_arduino_target TARGET_NAME BOARD_ID ALL_SRCS ALL_LIBS COMPILE_FLAGS LINK_FLAGS MANUAL)
+function(setup_arduino_target TARGET_NAME BOARD_ID ALL_SRCS ALL_LIBS
+    COMPILE_FLAGS LINK_FLAGS MANUAL A_COMPILE_FLAGS A_LINK_FLAGS)
 
 
     set(PLATFORM ${${BOARD_ID}.PLATFORM})
@@ -1285,8 +1309,8 @@ function(setup_arduino_target TARGET_NAME BOARD_ID ALL_SRCS ALL_LIBS COMPILE_FLA
     string(REPLACE "{build.path}" "${EXECUTABLE_OUTPUT_PATH}" ARDUINO_LINK_FLAGS ${ARDUINO_LINK_FLAGS})
 
     set_target_properties(${TARGET_NAME} PROPERTIES
-                COMPILE_FLAGS "${ARDUINO_COMPILE_FLAGS} ${COMPILE_FLAGS}"
-                LINK_FLAGS "${ARDUINO_LINK_FLAGS}"
+      COMPILE_FLAGS "${ARDUINO_COMPILE_FLAGS} ${COMPILE_FLAGS} ${A_COMPILE_FLAGS}"
+                LINK_FLAGS "${ARDUINO_LINK_FLAGS} ${A_LINK_FLAGS}"
               ARCHIVE_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
               LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
               RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -1383,7 +1407,7 @@ endfunction()
 # The target for uploading the firmware is ${TARGET_NAME}-upload .
 #
 #=============================================================================#
-function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT)
+function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT AVRDUDE_FLAGS)
     set(UPLOAD_TARGET ${TARGET_NAME}-upload)
 
     if(NOT EXECUTABLE_OUTPUT_PATH)
@@ -1408,6 +1432,9 @@ function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT
       #set(ARDUINO_UPLOAD_FLAGS "")
       string(CONCAT ARDUINO_UPLOAD_FLAGS "-C" "${ARDUINO_AVRDUDE_CONFIG_PATH}")
       list(APPEND ARDUINO_UPLOAD_FLAGS "${OTHER_FLAGS}")
+      message("---- bootloader upload before ${ARDUINO_UPLOAD_FLAGS}")
+      list(APPEND ARDUINO_UPLOAD_FLAGS "${AVRDUDE_FLAGS}")
+      message("---- bootloader upload after ${ARDUINO_UPLOAD_FLAGS}")
 
     endif()
     string(REPLACE "{build.path}/{build.project_name}" "${TARGET_NAME}" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
@@ -1418,6 +1445,7 @@ function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT
     endif()
 
     string(REPLACE " " ";" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
+    message("---- bootloader upload after after ${ARDUINO_UPLOAD_FLAGS}")
     add_custom_target(${UPLOAD_TARGET}
                       ${ARDUINO_UPLOAD_CMD}
                       ${ARDUINO_UPLOAD_FLAGS}
@@ -1447,7 +1475,7 @@ endfunction()
 #=============================================================================#
 function(setup_arduino_upload BOARD_ID TARGET_NAME PORT PROGRAMMER_ID AVRDUDE_FLAGS)
 
-    setup_arduino_bootloader_upload(${TARGET_NAME} ${BOARD_ID} ${PROGRAMMER_ID} ${PORT})
+    setup_arduino_bootloader_upload(${TARGET_NAME} ${BOARD_ID} ${PROGRAMMER_ID} ${PORT} "${AVRDUDE_FLAGS}")
 
     # Add programmer support if defined
     if(PROGRAMMER_ID AND ${BOARD_ID}.upload.protocol)
