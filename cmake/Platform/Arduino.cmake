@@ -564,7 +564,7 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     link: ${INPUT_A_LINK_FLAGS}, upload: ${INPUT_A_UPLOAD_FLAGS}")
     if(INPUT_PORT)
         setup_arduino_upload(${INPUT_BOARD} ${INPUT_NAME} ${INPUT_PORT}
-          "${INPUT_PROGRAMMER}""${INPUT_A_UPLOAD_FLAGS}")
+          "${INPUT_PROGRAMMER}" "${INPUT_A_UPLOAD_FLAGS}")
     endif()
 
     if(INPUT_SERIAL)
