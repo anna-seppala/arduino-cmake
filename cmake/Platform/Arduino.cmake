@@ -560,8 +560,8 @@ function(GENERATE_ARDUINO_FIRMWARE INPUT_NAME)
     list(APPEND ALL_LIBS ${CORE_LIB} ${INPUT_LIBS})
     setup_arduino_target(${INPUT_NAME} ${INPUT_BOARD} "${ALL_SRCS}" "${ALL_LIBS}" "${LIB_DEP_INCLUDES}" "" "${INPUT_MANUAL}" "${INPUT_A_COMPILE_FLAGS}" "${INPUT_A_LINK_FLAGS}")
 
-    message("---gen arduino firmware flags: compile: ${INPUT_A_COMPILE_FLAGS},
-    link: ${INPUT_A_LINK_FLAGS}, upload: ${INPUT_A_UPLOAD_FLAGS}")
+    #message("---gen arduino firmware flags: compile: ${INPUT_A_COMPILE_FLAGS},
+    #link: ${INPUT_A_LINK_FLAGS}, upload: ${INPUT_A_UPLOAD_FLAGS}")
     if(INPUT_PORT)
         setup_arduino_upload(${INPUT_BOARD} ${INPUT_NAME} ${INPUT_PORT}
           "${INPUT_PROGRAMMER}" "${INPUT_A_UPLOAD_FLAGS}")
@@ -1134,6 +1134,7 @@ function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLA
     set(LIB_TARGETS)
     set(LIB_INCLUDES)
 
+    message("---set arduino library")
     get_filename_component(LIB_NAME ${LIB_PATH} NAME)
     set(TARGET_LIB_NAME ${BOARD_ID}_${LIB_NAME})
 
@@ -1188,6 +1189,7 @@ function(setup_arduino_library VAR_NAME BOARD_ID LIB_PATH COMPILE_FLAGS LINK_FLA
                                   RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                                   )
 
+            message("---setup arduino library: lib_srcs${LIB_SRCS} path override ${PATH_OVERRIDE}")
             find_arduino_libraries(LIB_DEPS "${LIB_SRCS}" "" "${PATH_OVERRIDE}")
 
             foreach(LIB_DEP ${LIB_DEPS})
@@ -1245,7 +1247,7 @@ endfunction()
 function(setup_arduino_libraries VAR_NAME BOARD_ID SRCS ARDLIBS COMPILE_FLAGS LINK_FLAGS PATH_OVERRIDE)
     set(LIB_TARGETS)
     set(LIB_INCLUDES)
-
+    message("path override: ${PATH_OVERRIDE}")
     find_arduino_libraries(TARGET_LIBS "${SRCS}" "${ARDLIBS}" "${PATH_OVERRIDE}")
     foreach(TARGET_LIB ${TARGET_LIBS})
         # Create static library instead of returning sources
@@ -1432,9 +1434,9 @@ function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT
       #set(ARDUINO_UPLOAD_FLAGS "")
       string(CONCAT ARDUINO_UPLOAD_FLAGS "-C" "${ARDUINO_AVRDUDE_CONFIG_PATH}")
       list(APPEND ARDUINO_UPLOAD_FLAGS "${OTHER_FLAGS}")
-      message("---- bootloader upload before ${ARDUINO_UPLOAD_FLAGS}")
+      #message("---- bootloader upload before ${ARDUINO_UPLOAD_FLAGS}")
       list(APPEND ARDUINO_UPLOAD_FLAGS "${AVRDUDE_FLAGS}")
-      message("---- bootloader upload after ${ARDUINO_UPLOAD_FLAGS}")
+      #message("---- bootloader upload after ${ARDUINO_UPLOAD_FLAGS}")
 
     endif()
     string(REPLACE "{build.path}/{build.project_name}" "${TARGET_NAME}" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
@@ -1445,7 +1447,7 @@ function(setup_arduino_bootloader_upload TARGET_NAME BOARD_ID PROGRAMMER_ID PORT
     endif()
 
     string(REPLACE " " ";" ARDUINO_UPLOAD_FLAGS ${ARDUINO_UPLOAD_FLAGS})
-    message("---- bootloader upload after after ${ARDUINO_UPLOAD_FLAGS}")
+    #message("---- bootloader upload after after ${ARDUINO_UPLOAD_FLAGS}")
     add_custom_target(${UPLOAD_TARGET}
                       ${ARDUINO_UPLOAD_CMD}
                       ${ARDUINO_UPLOAD_FLAGS}
